@@ -1,103 +1,87 @@
-import Image from "next/image";
+'use client';
+
+import Link from "next/link";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    const { user, loading } = useAuth();
+    const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    useEffect(() => {
+        if (!loading && user) {
+            // If user is authenticated, redirect to dashboard
+            router.push('/dashboard');
+        }
+    }, [user, loading, router]);
+
+    // Show loading spinner while checking auth
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    // If authenticated, don't show landing page (will redirect)
+    if (user) {
+        return null;
+    }
+
+    // Show landing page for unauthenticated users
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="container mx-auto px-4 py-16">
+                <div className="text-center max-w-4xl mx-auto">
+                    <h1 className="text-5xl font-bold text-gray-900 mb-6">
+                        KAIST Micro-Event Board
+                    </h1>
+                    <p className="text-xl text-gray-600 mb-8">
+                        Discover and join events happening around KAIST campus. 
+                        Connect with fellow students and build lasting memories.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                        <Link
+                            href="/auth/signup"
+                            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+                        >
+                            Get Started
+                        </Link>
+                        <Link
+                            href="/auth/login"
+                            className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors text-lg font-medium"
+                        >
+                            Sign In
+                        </Link>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-3 gap-8 mt-16">
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                            <div className="text-3xl mb-4">🎉</div>
+                            <h3 className="text-lg font-semibold mb-2">Create Events</h3>
+                            <p className="text-gray-600">
+                                Organize study groups, social gatherings, or campus activities with ease.
+                            </p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                            <div className="text-3xl mb-4">👥</div>
+                            <h3 className="text-lg font-semibold mb-2">Join Community</h3>
+                            <p className="text-gray-600">
+                                Connect with fellow KAIST students and participate in exciting events.
+                            </p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                            <div className="text-3xl mb-4">📱</div>
+                            <h3 className="text-lg font-semibold mb-2">Stay Updated</h3>
+                            <p className="text-gray-600">
+                                Get notified about new events through our Discord integration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
