@@ -14,47 +14,46 @@ export default function CreateEventPage() {
         setError(null);
 
         try {
-            // Upload images first if any
             let imageUrl: string | null = null;
 
-            if (data.images && data.images.length > 0) {
-                for (let i = 0; i < Math.min(data.images.length, 3); i++) {
-                    const file = data.images[i];
+            // Handle single image upload
+            if (data.image && data.image.length > 0) {
+                const file = data.image[0]; // Only take the first file
 
-                    // Get upload URL
-                    const uploadResponse = await fetch("/api/upload-url", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            file_name: file.name,
-                            file_type: file.type,
-                            file_size: file.size,
-                            context: "event",
-                        }),
-                    });
+                console.log("Uploading file: ", file);
 
-                    if (!uploadResponse.ok) {
-                        throw new Error("Failed to get upload URL");
-                    }
+                const uploadResponse = await fetch("/api/upload-url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        file_name: file.name,
+                        file_type: file.type,
+                        file_size: file.size,
+                        context: "event",
+                    }),
+                });
 
-                    const { uploadUrl, publicUrl } =
-                        await uploadResponse.json();
-
-                    // Upload file
-                    const fileUploadResponse = await fetch(uploadUrl, {
-                        method: "PUT",
-                        body: file,
-                        headers: {
-                            "Content-Type": file.type,
-                        },
-                    });
-
-                    if (!fileUploadResponse.ok) {
-                        throw new Error("Failed to upload image");
-                    }
-
-                    imageUrl = publicUrl;
+                if (!uploadResponse.ok) {
+                    throw new Error("Failed to get upload URL");
                 }
+
+                const { uploadUrl, publicUrl } = await uploadResponse.json();
+
+                // Upload file
+                const fileUploadResponse = await fetch(uploadUrl, {
+                    method: "PUT",
+                    body: file,
+                    headers: {
+                        "Content-Type": file.type,
+                    },
+                });
+
+                if (!fileUploadResponse.ok) {
+                    throw new Error("Failed to upload image");
+                }
+
+                imageUrl = publicUrl;
+                console.log("Uploaded image URL: ", imageUrl);
             }
 
             // Create event
@@ -66,7 +65,7 @@ export default function CreateEventPage() {
                     description: data.description,
                     location: data.location,
                     event_date: data.event_date,
-                    image_url: imageUrl,
+                    image_url: imageUrl ? [imageUrl] : [],
                 }),
             });
 

@@ -59,10 +59,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // Check if event exists and is completed
+        // Check if event exists and is finished
         const { data: event, error: eventError } = await supabase
             .from("events")
-            .select("id, status")
+            .select("id, status, creator_id")
             .eq("id", id)
             .single();
 
@@ -73,24 +73,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        if (event.status !== "completed") {
+        if (event.status !== "finished") {
             return NextResponse.json(
-                { error: "Can only review completed events" },
+                { error: "Can only review finished events" },
                 { status: 400 }
             );
         }
 
-        // Check if user participated in the event
-        const { data: participant, error: participantError } = await supabase
-            .from("participants")
-            .select("id")
-            .eq("event_id", id)
-            .eq("user_id", user.id)
-            .single();
+        // Check if user participated in the event OR is the creator
+        const isCreator = event.creator_id === user.id;
+        let canReview = isCreator;
 
-        if (participantError || !participant) {
+        if (!isCreator) {
+            const { data: participant, error: participantError } =
+                await supabase
+                    .from("participants")
+                    .select("id")
+                    .eq("event_id", id)
+                    .eq("user_id", user.id)
+                    .single();
+
+            canReview = !participantError && !!participant;
+        }
+
+        if (!canReview) {
             return NextResponse.json(
-                { error: "Only participants can review events" },
+                { error: "Only participants and creators can review events" },
                 { status: 403 }
             );
         }

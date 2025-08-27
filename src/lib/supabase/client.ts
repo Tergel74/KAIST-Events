@@ -37,7 +37,7 @@ export type Database = {
                     event_date: string;
                     image_url: string[];
                     creator_id: string;
-                    status: "upcoming" | "completed";
+                    status: "upcoming" | "started" | "finished";
                     created_at: string;
                 };
                 Insert: {
@@ -48,7 +48,7 @@ export type Database = {
                     event_date: string;
                     image_url?: string[];
                     creator_id: string;
-                    status?: "upcoming" | "completed";
+                    status?: "upcoming" | "started" | "finished";
                     created_at?: string;
                 };
                 Update: {
@@ -59,7 +59,7 @@ export type Database = {
                     event_date?: string;
                     image_url?: string[];
                     creator_id?: string;
-                    status?: "upcoming" | "completed";
+                    status?: "upcoming" | "started" | "finished";
                     created_at?: string;
                 };
             };

@@ -13,13 +13,16 @@ export const createEventSchema = z.object({
         .string()
         .max(200, "Location must be less than 200 characters")
         .optional(),
-    event_date: z.string().transform((str) => new Date(str)).refine((date) => {
-        const now = new Date();
-        return date > now;
-    }, "Event date must be in the future"),
-    image_urls: z
+    event_date: z
+        .string()
+        .transform((str) => new Date(str))
+        .refine((date) => {
+            const now = new Date();
+            return date > now;
+        }, "Event date must be in the future"),
+    image_url: z
         .array(z.url())
-        .max(3, "Maximum 3 images allowed")
+        .max(1, "Only 1 image allowed")
         .optional()
         .default([]),
 });
@@ -38,11 +41,14 @@ export const createReviewSchema = z.object({
 });
 
 export const updateEventStatusSchema = z.object({
-    status: z.enum(["upcoming", "completed"]),
+    status: z.enum(["upcoming", "started", "finished"]),
 });
 
 export const eventFiltersSchema = z.object({
-    date_range: z.enum(["today", "week", "all"]).optional().default("all"),
+    date_range: z
+        .enum(["today", "week", "all", "past"])
+        .optional()
+        .default("all"),
     category: z.string().optional(),
     limit: z.number().min(1).max(50).optional().default(20),
     offset: z.number().min(0).optional().default(0),
@@ -63,27 +69,44 @@ export const uploadUrlSchema = z.object({
 });
 
 // Authentication schemas
-export const signUpSchema = z.object({
-    email: z.string().email("Invalid email format").refine((email) => {
-        return email.endsWith("@kaist.ac.kr");
-    }, "Only KAIST email addresses are allowed"),
-    name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
-    password: z.string().min(8, "Password must be at least 8 characters").max(100, "Password must be less than 100 characters"),
-    confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-});
+export const signUpSchema = z
+    .object({
+        email: z
+            .string()
+            .email("Invalid email format")
+            .refine((email) => {
+                return email.endsWith("@kaist.ac.kr");
+            }, "Only KAIST email addresses are allowed"),
+        name: z
+            .string()
+            .min(1, "Name is required")
+            .max(100, "Name must be less than 100 characters"),
+        password: z
+            .string()
+            .min(8, "Password must be at least 8 characters")
+            .max(100, "Password must be less than 100 characters"),
+        confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords don't match",
+        path: ["confirmPassword"],
+    });
 
 export const verifyOtpSchema = z.object({
     email: z.string().email("Invalid email format"),
-    token: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
+    token: z
+        .string()
+        .min(6, "OTP must be 6 digits")
+        .max(6, "OTP must be 6 digits"),
 });
 
 export const signInSchema = z.object({
-    email: z.string().email("Invalid email format").refine((email) => {
-        return email.endsWith("@kaist.ac.kr");
-    }, "Only KAIST email addresses are allowed"),
+    email: z
+        .string()
+        .email("Invalid email format")
+        .refine((email) => {
+            return email.endsWith("@kaist.ac.kr");
+        }, "Only KAIST email addresses are allowed"),
     password: z.string().optional(),
     loginMethod: z.enum(["password", "magic_link"]).default("password"),
 });

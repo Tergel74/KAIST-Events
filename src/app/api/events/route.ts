@@ -15,30 +15,38 @@ export async function GET(request: NextRequest) {
 
         // Check if requesting a specific event
         const eventId = searchParams.get("event_id");
-        
+
         if (eventId) {
             // Fetch specific event
             const { data: event, error } = await supabase
                 .from("events")
-                .select(`
+                .select(
+                    `
                     *,
                     users!creator_id (name),
                     participants (count)
-                `)
+                `
+                )
                 .eq("id", eventId)
                 .single();
 
             if (error) {
-                return NextResponse.json({ error: error.message }, { status: 500 });
+                return NextResponse.json(
+                    { error: error.message },
+                    { status: 500 }
+                );
             }
 
             if (!event) {
-                return NextResponse.json({ error: "Event not found" }, { status: 404 });
+                return NextResponse.json(
+                    { error: "Event not found" },
+                    { status: 404 }
+                );
             }
 
             const eventWithParticipantCount = {
                 ...event,
-                participant_count: event.participants?.length || 0
+                participant_count: event.participants?.length || 0,
             };
 
             return NextResponse.json({ events: [eventWithParticipantCount] });
@@ -53,12 +61,13 @@ export async function GET(request: NextRequest) {
 
         let query = supabase
             .from("events")
-            .select(`
+            .select(
+                `
                 *,
                 users!creator_id (name),
                 participants (count)
-            `)
-            .eq("status", "upcoming")
+            `
+            )
             .order("event_date", { ascending: true })
             .range(filters.offset, filters.offset + filters.limit - 1);
 
@@ -68,16 +77,25 @@ export async function GET(request: NextRequest) {
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
             query = query
+                .eq("status", "upcoming")
                 .gte("event_date", now.toISOString())
                 .lt("event_date", tomorrow.toISOString());
         } else if (filters.date_range === "week") {
             const nextWeek = new Date(now);
             nextWeek.setDate(nextWeek.getDate() + 7);
             query = query
+                .eq("status", "upcoming")
                 .gte("event_date", now.toISOString())
                 .lt("event_date", nextWeek.toISOString());
+        } else if (filters.date_range === "past") {
+            query = query
+                .in("status", ["started", "finished"])
+                .lt("event_date", now.toISOString());
         } else {
-            query = query.gte("event_date", now.toISOString());
+            // For "all", show upcoming and started events
+            query = query
+                .in("status", ["upcoming", "started"])
+                .gte("event_date", now.toISOString());
         }
 
         const { data: events, error } = await query;
@@ -87,10 +105,11 @@ export async function GET(request: NextRequest) {
         }
 
         // Add participant count to each event
-        const eventsWithParticipantCount = events?.map(event => ({
-            ...event,
-            participant_count: event.participants?.length || 0
-        })) || [];
+        const eventsWithParticipantCount =
+            events?.map((event) => ({
+                ...event,
+                participant_count: event.participants?.length || 0,
+            })) || [];
 
         return NextResponse.json({ events: eventsWithParticipantCount });
     } catch (error) {
@@ -140,6 +159,15 @@ export async function POST(request: NextRequest) {
             console.error("Error creating user record:", upsertError);
         }
 
+        console.log("Event data to insert:", {
+            title: eventData.title,
+            description: sanitizedDescription,
+            location: eventData.location,
+            event_date: eventData.event_date,
+            creator_id: user.id,
+            image_url: eventData.image_url || [],
+        });
+
         const { data: event, error } = await supabase
             .from("events")
             .insert({
@@ -148,7 +176,7 @@ export async function POST(request: NextRequest) {
                 location: eventData.location,
                 event_date: eventData.event_date,
                 creator_id: user.id,
-                image_url: eventData.image_urls?.[0] || null,
+                image_url: eventData.image_url || [],
             })
             .select(
                 `
