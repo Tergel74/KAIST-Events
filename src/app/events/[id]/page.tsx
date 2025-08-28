@@ -11,6 +11,7 @@ import { Participant } from "@/types/participant";
 import { Review } from "@/types/review";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { format } from "date-fns";
+import Image from "next/image";
 
 interface ReviewFormData {
     content: string;
@@ -217,7 +218,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen-navbar bg-gray-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
         );
@@ -225,7 +226,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
 
     if (error || !event) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="min-h-screen-navbar bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto px-4">
                     <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg
@@ -281,7 +282,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="min-h-screen-navbar bg-gradient-to-b from-gray-50 to-gray-100">
             {/* Back Button */}
             <div className="container mx-auto px-4 pt-6">
                 <button
@@ -311,11 +312,16 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
                         {event.image_url && event.image_url[0] && (
                             <div className="relative h-80 md:h-96 w-full overflow-hidden">
-                                <img
+                                <Image
                                     src={event.image_url[0]}
                                     alt={event.title}
                                     className="w-full h-full object-cover"
                                 />
+                                {/* <img
+                                    src={event.image_url[0]}
+                                    alt={event.title}
+                                    className="w-full h-full object-cover"
+                                /> */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                                 <div className="absolute bottom-4 left-6">
                                     <span
@@ -647,7 +653,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                         Share Your Experience
                                     </h3>
                                     <ReviewForm
-                                        eventId={event.id}
+                                        // eventId={event.id}
                                         onSubmit={handleReviewSubmit}
                                     />
                                 </div>
@@ -689,7 +695,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                                                 photo,
                                                                 photoIndex
                                                             ) => (
-                                                                <img
+                                                                <Image
                                                                     key={
                                                                         photoIndex
                                                                     }
@@ -700,6 +706,17 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                                                     }`}
                                                                     className="w-full h-24 object-cover rounded"
                                                                 />
+                                                                // <img
+                                                                //     key={
+                                                                //         photoIndex
+                                                                //     }
+                                                                //     src={photo}
+                                                                //     alt={`Review photo ${
+                                                                //         photoIndex +
+                                                                //         1
+                                                                //     }`}
+                                                                //     className="w-full h-24 object-cover rounded"
+                                                                // />
                                                             )
                                                         )}
                                                     </div>

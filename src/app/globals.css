@@ -44,6 +44,7 @@
 
 :root {
     --radius: 0.625rem;
+    --navbar-height: 3rem; /* 48px - h-12 */
     --background: oklch(1 0 0);
     --foreground: oklch(0.129 0.042 264.695);
     --card: oklch(1 0 0);
@@ -117,5 +118,28 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@layer utilities {
+    .min-h-screen-navbar {
+        min-height: calc(100vh - var(--navbar-height));
+    }
+
+    .h-screen-navbar {
+        height: calc(100vh - var(--navbar-height));
+    }
+}
+
+/* Responsive navbar height updates */
+@media (min-width: 640px) {
+    :root {
+        --navbar-height: 3.5rem; /* 56px - sm:h-14 */
+    }
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --navbar-height: 4rem; /* 64px - lg:h-16 */
     }
 }

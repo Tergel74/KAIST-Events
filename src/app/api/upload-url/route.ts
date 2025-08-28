@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { file_name, file_type, file_size } = uploadUrlSchema.parse(body);
+        const { file_name } = uploadUrlSchema.parse(body);
+        // const { file_name, file_type, file_size } = uploadUrlSchema.parse(body);
 
         // Sanitize filename and create unique path
         const sanitizedFileName = sanitizeFileName(file_name);

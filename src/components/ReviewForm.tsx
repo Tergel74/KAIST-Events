@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 interface ReviewFormData {
@@ -8,16 +9,12 @@ interface ReviewFormData {
 }
 
 interface ReviewFormProps {
-    eventId: string;
+    // eventId: string;
     onSubmit: (data: ReviewFormData) => Promise<void>;
     isLoading?: boolean;
 }
 
-export default function ReviewForm({
-    eventId,
-    onSubmit,
-    isLoading,
-}: ReviewFormProps) {
+export default function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
     const {
         register,
         handleSubmit,
@@ -71,7 +68,7 @@ export default function ReviewForm({
                 {photoPreview.length > 0 && (
                     <div className="mt-2 flex gap-2 flex-wrap">
                         {photoPreview.map((preview, index) => (
-                            <img
+                            <Image
                                 key={index}
                                 src={preview}
                                 alt={`Photo ${index + 1}`}

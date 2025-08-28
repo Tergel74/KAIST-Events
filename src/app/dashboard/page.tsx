@@ -65,7 +65,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="min-h-screen-navbar bg-gradient-to-b from-gray-50 to-gray-100">
             <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-6">
                 <motion.div
                     className="mb-3 sm:mb-6"
@@ -212,7 +212,7 @@ export default function DashboardPage() {
             <div className="container mx-auto px-4 sm:px-6 py-8">
                 {pastLoading ? (
                     <div className="flex flex-col items-center justify-center py-16">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-3 border-blue-600 border-t-transparent mb-4"></div>
                         <p className="text-gray-600">Loading events...</p>
                     </div>
                 ) : pastEvents.length === 0 ? (

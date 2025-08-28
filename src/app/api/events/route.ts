@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ events: eventsWithParticipantCount });
     } catch (error) {
         return NextResponse.json(
-            { error: "Invalid request parameters" },
+            { error: `Invalid request parameters: ${error}` },
             { status: 400 }
         );
     }
@@ -158,15 +158,6 @@ export async function POST(request: NextRequest) {
         if (upsertError) {
             console.error("Error creating user record:", upsertError);
         }
-
-        console.log("Event data to insert:", {
-            title: eventData.title,
-            description: sanitizedDescription,
-            location: eventData.location,
-            event_date: eventData.event_date,
-            creator_id: user.id,
-            image_url: eventData.image_url || [],
-        });
 
         const { data: event, error } = await supabase
             .from("events")

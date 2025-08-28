@@ -2,18 +2,6 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import L from "leaflet";
-
-// Fix Leaflet default markers in React
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-    iconUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
 
 // Dynamically import map components to avoid SSR issues
 const MapContainer = dynamic(
@@ -65,6 +53,45 @@ export default function MapPicker({
     // Default coordinates (KAIST campus as fallback)
     const defaultCoordinates = { lat: 36.3741, lng: 127.365 };
 
+    // Function to geocode a location and set coordinates
+    const geocodeLocation = async (location: string) => {
+        if (!location) return;
+
+        try {
+            const response = await fetch(
+                `/api/geocode?location=${encodeURIComponent(location)}`
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.coordinates) {
+                    const coordinates = {
+                        lat: data.coordinates.lat,
+                        lng: data.coordinates.lng,
+                    };
+                    setMapCoordinates(coordinates);
+                    setSelectedLocation({
+                        text: location,
+                        coordinates,
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Geocoding failed:", err);
+            // Fall back to default coordinates
+            setMapCoordinates(defaultCoordinates);
+        }
+    };
+
+    // Update inputValue when value prop changes (for edit mode)
+    useEffect(() => {
+        setInputValue(value);
+        if (value) {
+            // If we have a value, try to geocode it to get coordinates
+            geocodeLocation(value);
+        }
+    }, [value]);
+
     useEffect(() => {
         setIsMounted(true);
 
@@ -83,7 +110,6 @@ export default function MapPicker({
                     reverseGeocode(userCoords);
                 },
                 (error) => {
-                    console.log("Geolocation error:", error);
                     // Fall back to default coordinates
                     setMapCoordinates(defaultCoordinates);
                     setIsLoading(false);
@@ -102,18 +128,49 @@ export default function MapPicker({
     const reverseGeocode = async (coords: { lat: number; lng: number }) => {
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=18&addressdetails=1`
+                `/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`
             );
+
+            if (!response.ok) {
+                throw new Error("Failed to reverse geocode location");
+            }
+
             const data = await response.json();
 
-            if (data && data.display_name) {
-                const address = data.display_name;
+            if (data.success && data.address) {
+                const address = data.address;
                 setInputValue(address);
                 setSelectedLocation({ text: address, coordinates: coords });
                 onChange(address);
+
+                // Log the source for debugging
+                if (data.source === "error_fallback") {
+                    console.warn(
+                        "Using fallback address for coordinates:",
+                        coords
+                    );
+                }
+            } else {
+                // If all else fails, use a basic address format
+                const fallbackAddress = `${coords.lat.toFixed(
+                    4
+                )}, ${coords.lng.toFixed(4)}`;
+                setInputValue(fallbackAddress);
+                setSelectedLocation({
+                    text: fallbackAddress,
+                    coordinates: coords,
+                });
+                onChange(fallbackAddress);
             }
         } catch (err) {
             console.error("Reverse geocoding failed:", err);
+            // Use coordinates as fallback
+            const fallbackAddress = `${coords.lat.toFixed(
+                4
+            )}, ${coords.lng.toFixed(4)}`;
+            setInputValue(fallbackAddress);
+            setSelectedLocation({ text: fallbackAddress, coordinates: coords });
+            onChange(fallbackAddress);
         } finally {
             setIsLoading(false);
         }
@@ -158,12 +215,20 @@ export default function MapPicker({
         setIsLoading(true);
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+                `/api/reverse-geocode?lat=${lat}&lng=${lng}`
             );
+
+            if (!response.ok) {
+                throw new Error("Failed to reverse geocode location");
+            }
+
             const data = await response.json();
 
             const address =
-                data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                data.success && data.address
+                    ? data.address
+                    : `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
             const locationData: LocationData = {
                 text: address,
                 coordinates: { lat, lng },
@@ -206,16 +271,19 @@ export default function MapPicker({
         setIsLoading(true);
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-                    inputValue
-                )}&limit=1`
+                `/api/geocode?location=${encodeURIComponent(inputValue)}`
             );
+
+            if (!response.ok) {
+                throw new Error("Failed to geocode location");
+            }
+
             const data = await response.json();
 
-            if (data && data.length > 0) {
+            if (data.success && data.coordinates) {
                 const coordinates = {
-                    lat: parseFloat(data[0].lat),
-                    lng: parseFloat(data[0].lon),
+                    lat: data.coordinates.lat,
+                    lng: data.coordinates.lng,
                 };
                 setMapCoordinates(coordinates);
 

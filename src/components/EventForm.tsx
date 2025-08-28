@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import MapPicker from "./MapPicker";
+import Image from "next/image";
 interface EventFormData {
     title: string;
     description: string;
@@ -34,7 +35,6 @@ export default function EventForm({
         handleSubmit,
         control,
         formState: { errors },
-        setError,
     } = useForm<EventFormData>({
         defaultValues: initialData,
     });
@@ -152,11 +152,16 @@ export default function EventForm({
                                 Image Preview:
                             </p>
                             <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
-                                <img
+                                <Image
                                     src={imagePreview}
                                     alt="Event preview"
                                     className="w-full h-full object-cover"
                                 />
+                                {/* <img
+                                    src={imagePreview}
+                                    alt="Event preview"
+                                    className="w-full h-full object-cover"
+                                /> */}
                             </div>
                         </div>
                     )}

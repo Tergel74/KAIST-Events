@@ -18,7 +18,7 @@ export default function Home() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+            <div className="min-h-screen-navbar bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
                 <motion.div
                     className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
                     initial={{ opacity: 0 }}
@@ -34,7 +34,7 @@ export default function Home() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen-navbar bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 lg:py-16">
                 <motion.div
                     className="text-center max-w-4xl mx-auto"

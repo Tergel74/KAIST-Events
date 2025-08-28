@@ -17,7 +17,7 @@ export default function Navigation() {
     const closeMenu = () => setIsMenuOpen(false);
 
     return (
-        <nav className="bg-white shadow-sm border-b relative z-50">
+        <nav className="bg-white shadow-sm border-b z-50">
             <div className="container mx-auto px-3 sm:px-4">
                 <div className="flex justify-between items-center h-12 sm:h-14 lg:h-16">
                     <div className="flex items-center">

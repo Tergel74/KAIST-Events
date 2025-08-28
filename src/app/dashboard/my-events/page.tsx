@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import { Event } from "@/types/event";
 import { format } from "date-fns";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function MyEventsPage() {
     const { user } = useAuth();
@@ -113,10 +114,10 @@ export default function MyEventsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+            <div className="min-h-screen-navbar bg-gradient-to-b from-gray-50 to-gray-100">
                 <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
                     <div className="flex items-center justify-center py-12 sm:py-16">
-                        <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 border-3 sm:border-4 border-blue-600 border-t-transparent"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-3 border-blue-600 border-t-transparent"></div>
                     </div>
                 </div>
             </div>
@@ -124,7 +125,7 @@ export default function MyEventsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="min-h-screen-navbar bg-gradient-to-b from-gray-50 to-gray-100">
             <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
                 <div className="mb-6 sm:mb-8">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
@@ -216,7 +217,10 @@ export default function MyEventsPage() {
                         {events.map((event) => (
                             <div
                                 key={event.id}
-                                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                                onClick={() =>
+                                    router.push(`/events/${event.id}`)
+                                }
                             >
                                 <div className="md:flex">
                                     {/* Event Image */}
@@ -224,7 +228,12 @@ export default function MyEventsPage() {
                                         <div className="aspect-[4/3] md:aspect-square bg-gray-100">
                                             {event.image_url &&
                                             event.image_url[0] ? (
-                                                <img
+                                                // <img
+                                                //     src={event.image_url[0]}
+                                                //     alt={event.title}
+                                                //     className="w-full h-full object-cover"
+                                                // />
+                                                <Image
                                                     src={event.image_url[0]}
                                                     alt={event.title}
                                                     className="w-full h-full object-cover"
@@ -344,7 +353,10 @@ export default function MyEventsPage() {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="flex flex-wrap gap-3">
+                                        <div
+                                            className="flex flex-wrap gap-3"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <Link
                                                 href={`/events/${event.id}`}
                                                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"

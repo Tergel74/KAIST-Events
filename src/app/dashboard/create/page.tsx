@@ -20,8 +20,6 @@ export default function CreateEventPage() {
             if (data.image && data.image.length > 0) {
                 const file = data.image[0]; // Only take the first file
 
-                console.log("Uploading file: ", file);
-
                 const uploadResponse = await fetch("/api/upload-url", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -53,7 +51,6 @@ export default function CreateEventPage() {
                 }
 
                 imageUrl = publicUrl;
-                console.log("Uploaded image URL: ", imageUrl);
             }
 
             // Create event
@@ -85,7 +82,7 @@ export default function CreateEventPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen-navbar bg-gray-50">
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-2xl mx-auto">
                     <h1 className="text-3xl font-bold text-gray-900 mb-8">

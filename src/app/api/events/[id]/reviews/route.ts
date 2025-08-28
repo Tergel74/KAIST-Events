@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ reviews });
     } catch (error) {
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: `Internal server error: ${error}` },
             { status: 500 }
         );
     }

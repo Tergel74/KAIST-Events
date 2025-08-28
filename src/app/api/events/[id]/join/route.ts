@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: `Internal server error: ${error}` },
             { status: 500 }
         );
     }
@@ -155,7 +155,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: `Internal server error: ${error}` },
             { status: 500 }
         );
     }

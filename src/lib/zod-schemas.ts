@@ -69,14 +69,20 @@ export const uploadUrlSchema = z.object({
 });
 
 // Authentication schemas
+const getEmailDomain = () => {
+    // For client-side, we'll use a default. Server-side validation will use the env variable
+    return "@kaist.ac.kr";
+};
+
 export const signUpSchema = z
     .object({
         email: z
             .string()
             .email("Invalid email format")
             .refine((email) => {
-                return email.endsWith("@kaist.ac.kr");
-            }, "Only KAIST email addresses are allowed"),
+                const allowedDomain = getEmailDomain();
+                return email.endsWith(allowedDomain);
+            }, `Only ${getEmailDomain()} email addresses are allowed`),
         name: z
             .string()
             .min(1, "Name is required")
@@ -105,8 +111,9 @@ export const signInSchema = z.object({
         .string()
         .email("Invalid email format")
         .refine((email) => {
-            return email.endsWith("@kaist.ac.kr");
-        }, "Only KAIST email addresses are allowed"),
+            const allowedDomain = getEmailDomain();
+            return email.endsWith(allowedDomain);
+        }, `Only ${getEmailDomain()} email addresses are allowed`),
     password: z.string().optional(),
     loginMethod: z.enum(["password", "magic_link"]).default("password"),
 });

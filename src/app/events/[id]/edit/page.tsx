@@ -19,14 +19,6 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (!user) {
-            router.push("/auth/login");
-            return;
-        }
-        fetchEvent();
-    }, [user, id, router]);
-
     const fetchEvent = async () => {
         try {
             const response = await fetch(`/api/events?event_id=${id}`, {
@@ -62,6 +54,14 @@ export default function EditEventPage({ params }: EditEventPageProps) {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!user) {
+            router.push("/auth/login");
+            return;
+        }
+        fetchEvent();
+    }, [user, id, router]);
 
     const handleSubmit = async (data: any) => {
         if (!event) return;
@@ -138,7 +138,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen-navbar bg-gray-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
         );
@@ -146,7 +146,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     if (error || !event) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen-navbar bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">
                         {error?.includes("permission")
@@ -174,7 +174,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen-navbar bg-gray-50">
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-2xl mx-auto">
                     <div className="mb-6">

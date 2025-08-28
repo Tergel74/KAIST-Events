@@ -95,22 +95,35 @@ export default function MapComponent({
 
     const geocodeLocation = async (locationText: string) => {
         try {
+            setError(null); // Clear any previous errors
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-                    locationText
-                )}&limit=1`
+                `/api/geocode?location=${encodeURIComponent(locationText)}`
             );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch location data");
+            }
+
             const data = await response.json();
 
-            if (data && data.length > 0) {
+            if (data.success && data.coordinates) {
                 setMapCoordinates({
-                    lat: parseFloat(data[0].lat),
-                    lng: parseFloat(data[0].lon),
+                    lat: data.coordinates.lat,
+                    lng: data.coordinates.lng,
                 });
+
+                // Log the source for debugging
+                if (data.source === "error_fallback") {
+                    console.warn(
+                        "Using fallback coordinates for location:",
+                        locationText
+                    );
+                }
             } else {
-                setError("Location not found on map");
+                setError(data.error || "Location not found on map");
             }
         } catch (err) {
+            console.error("Geocoding error:", err);
             setError("Failed to load map");
         } finally {
             setIsLoading(false);
@@ -224,22 +237,27 @@ export default function MapComponent({
                 )}
 
                 {mapCoordinates && !isLoading && (
-                    <MapContainer
-                        center={[mapCoordinates.lat, mapCoordinates.lng]}
-                        zoom={15}
-                        style={{ height, width: "100%" }}
-                        className="rounded-lg"
-                    >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <Marker
-                            position={[mapCoordinates.lat, mapCoordinates.lng]}
+                    <div style={{ height, width: "100%" }}>
+                        <MapContainer
+                            center={[mapCoordinates.lat, mapCoordinates.lng]}
+                            zoom={15}
+                            style={{ height: "100%", width: "100%" }}
+                            className="rounded-lg"
                         >
-                            <Popup>{getDisplayText(location)}</Popup>
-                        </Marker>
-                    </MapContainer>
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <Marker
+                                position={[
+                                    mapCoordinates.lat,
+                                    mapCoordinates.lng,
+                                ]}
+                            >
+                                <Popup>{getDisplayText(location)}</Popup>
+                            </Marker>
+                        </MapContainer>
+                    </div>
                 )}
             </div>
         </div>

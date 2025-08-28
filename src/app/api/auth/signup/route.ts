@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { supabase } from "@/lib/supabase/client";
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,9 +15,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate KAIST email
-        if (!email.endsWith("@kaist.ac.kr")) {
+        const allowedDomain =
+            process.env.ALLOWED_EMAIL_DOMAIN || "@kaist.ac.kr";
+        if (!email.endsWith(allowedDomain)) {
             return NextResponse.json(
-                { error: "Only KAIST email addresses are allowed" },
+                { error: `Only ${allowedDomain} email addresses are allowed` },
                 { status: 400 }
             );
         }
@@ -76,16 +76,19 @@ export async function POST(request: NextRequest) {
             message: "Account created successfully! You can now sign in.",
             success: true,
         });
-        
+
         // Add cache-busting headers
-        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-        response.headers.set('Pragma', 'no-cache');
-        response.headers.set('Expires', '0');
-        
+        response.headers.set(
+            "Cache-Control",
+            "no-cache, no-store, must-revalidate"
+        );
+        response.headers.set("Pragma", "no-cache");
+        response.headers.set("Expires", "0");
+
         return response;
     } catch (error: any) {
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: `Internal server error: ${error}` },
             { status: 500 }
         );
     }

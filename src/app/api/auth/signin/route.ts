@@ -16,9 +16,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate KAIST email
-        if (!email.endsWith("@kaist.ac.kr")) {
+        const allowedDomain =
+            process.env.ALLOWED_EMAIL_DOMAIN || "@kaist.ac.kr";
+        if (!email.endsWith(allowedDomain)) {
             return NextResponse.json(
-                { error: "Only KAIST email addresses are allowed" },
+                { error: `Only ${allowedDomain} email addresses are allowed` },
                 { status: 400 }
             );
         }
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
         return response;
     } catch (error: any) {
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: `Internal server error: ${error}` },
             { status: 500 }
         );
     }

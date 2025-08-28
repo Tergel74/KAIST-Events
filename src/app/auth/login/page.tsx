@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,15 +9,18 @@ import { z } from "zod";
 
 // Create a form-specific schema for react-hook-form
 const loginFormSchema = z.object({
-    email: z.string().email("Invalid email format").refine((email: string) => {
-        return email.endsWith("@kaist.ac.kr");
-    }, "Only KAIST email addresses are allowed"),
+    email: z
+        .string()
+        .email("Invalid email format")
+        .refine((email: string) => {
+            return email.endsWith("@kaist.ac.kr");
+        }, "Only KAIST email addresses are allowed"),
     password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormInput = z.infer<typeof loginFormSchema>;
 
-export default function LoginPage() {
+function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [globalError, setGlobalError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -97,7 +100,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen-navbar flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -108,13 +111,16 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                <form
+                    className="mt-8 space-y-6"
+                    onSubmit={handleSubmit(onSubmit)}
+                >
                     {successMessage && (
                         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
                             {successMessage}
                         </div>
                     )}
-                    
+
                     {globalError && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                             {globalError}
@@ -175,7 +181,7 @@ export default function LoginPage() {
 
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
-                            Don't have an account?{" "}
+                            No account?{" "}
                             <Link
                                 href="/auth/signup"
                                 className="text-blue-600 hover:text-blue-500 font-medium"
@@ -187,5 +193,13 @@ export default function LoginPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <Login />
+        </Suspense>
     );
 }
