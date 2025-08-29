@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { z } from "zod";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 // Create a form-specific schema for react-hook-form
 const loginFormSchema = z.object({
@@ -24,6 +25,7 @@ function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [globalError, setGlobalError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const { refreshSession } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectedFrom = searchParams.get("redirectedFrom") || "/dashboard";
@@ -86,8 +88,13 @@ function Login() {
                 throw new Error(result.error || "Sign in failed");
             }
 
-            // Password login successful - redirect
-            router.push(redirectedFrom);
+            // Password login successful - refresh auth context to trigger redirect
+            await refreshSession();
+
+            // Give a moment for the auth context to update
+            setTimeout(() => {
+                router.push(redirectedFrom);
+            }, 200);
         } catch (err) {
             if (err instanceof Error) {
                 setGlobalError(err.message);

@@ -12,7 +12,7 @@ interface EditEventPageProps {
 
 export default function EditEventPage({ params }: EditEventPageProps) {
     const { id } = use(params);
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [event, setEvent] = useState<Event | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -56,12 +56,15 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     };
 
     useEffect(() => {
+        // Don't redirect while auth is still loading
+        if (authLoading) return;
+
         if (!user) {
             router.push("/auth/login");
             return;
         }
         fetchEvent();
-    }, [user, id, router]);
+    }, [user, authLoading, id, router]);
 
     const handleSubmit = async (data: any) => {
         if (!event) return;
@@ -136,7 +139,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
         }
     };
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="min-h-screen-navbar bg-gray-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

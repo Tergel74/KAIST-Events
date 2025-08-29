@@ -51,6 +51,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Refresh the session to ensure it's properly set
+        await supabase.auth.refreshSession();
+
         const response = NextResponse.json({
             message: "Signed in successfully",
             success: true,
