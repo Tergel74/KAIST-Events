@@ -3,22 +3,33 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EventForm from "@/components/EventForm";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 export default function CreateEventPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [pendingEventData, setPendingEventData] = useState<any>(null);
     const router = useRouter();
 
     const handleSubmit = async (data: any) => {
+        setPendingEventData(data);
+        setShowConfirmation(true);
+    };
+
+    const handleConfirmCreate = async () => {
+        if (!pendingEventData) return;
+
         setIsLoading(true);
         setError(null);
+        setShowConfirmation(false);
 
         try {
             let imageUrl: string | null = null;
 
             // Handle single image upload
-            if (data.image && data.image.length > 0) {
-                const file = data.image[0]; // Only take the first file
+            if (pendingEventData.image && pendingEventData.image.length > 0) {
+                const file = pendingEventData.image[0]; // Only take the first file
 
                 const uploadResponse = await fetch("/api/upload-url", {
                     method: "POST",
@@ -58,10 +69,10 @@ export default function CreateEventPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    title: data.title,
-                    description: data.description,
-                    location: data.location,
-                    event_date: data.event_date,
+                    title: pendingEventData.title,
+                    description: pendingEventData.description,
+                    location: pendingEventData.location,
+                    event_date: pendingEventData.event_date,
                     image_url: imageUrl ? [imageUrl] : [],
                 }),
             });
@@ -103,6 +114,17 @@ export default function CreateEventPage() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmationDialog
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmCreate}
+                title="Create Event"
+                message={`Are you sure you want to create the event "${pendingEventData?.title}"? This will be announced to all KAIST students.`}
+                confirmText="Create Event"
+                isLoading={isLoading}
+                type="info"
+            />
         </div>
     );
 }

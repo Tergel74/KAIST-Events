@@ -66,6 +66,7 @@ export const uploadUrlSchema = z.object({
     file_size: z
         .number()
         .max(5 * 1024 * 1024, "File size must be less than 5MB"),
+    context: z.enum(["event", "review", "profile"]).optional().default("event"),
 });
 
 // Authentication schemas

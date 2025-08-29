@@ -578,20 +578,41 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                         {participants.length > 0 ? (
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                                 {participants.map((participant) => (
-                                    <div
+                                    <button
                                         key={participant.id}
-                                        className="text-center group"
+                                        onClick={() =>
+                                            router.push(
+                                                `/profile/${participant.user_id}`
+                                            )
+                                        }
+                                        className="text-center group hover:bg-gray-50 rounded-lg p-2 transition-colors"
                                     >
-                                        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:from-blue-200 group-hover:to-blue-300 transition-all duration-200">
-                                            <span className="text-blue-700 font-bold text-lg">
-                                                {participant.users.name?.[0] ||
-                                                    "?"}
-                                            </span>
+                                        <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3 shadow-sm">
+                                            {participant.users
+                                                .profile_image_url ? (
+                                                <Image
+                                                    src={
+                                                        participant.users
+                                                            .profile_image_url
+                                                    }
+                                                    alt={participant.users.name}
+                                                    width={64}
+                                                    height={64}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center group-hover:from-blue-200 group-hover:to-blue-300 transition-all duration-200">
+                                                    <span className="text-blue-700 font-bold text-lg">
+                                                        {participant.users
+                                                            .name?.[0] || "?"}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <p className="text-sm font-medium text-gray-700">
+                                        <p className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">
                                             {participant.users.name}
                                         </p>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         ) : (

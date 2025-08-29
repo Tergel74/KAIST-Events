@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthContext";
 import EventForm from "@/components/EventForm";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { Event } from "@/types/event";
 
 interface EditEventPageProps {
@@ -18,6 +19,8 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [pendingEventData, setPendingEventData] = useState<any>(null);
 
     const fetchEvent = async () => {
         try {
@@ -67,17 +70,23 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     }, [user, authLoading, id, router]);
 
     const handleSubmit = async (data: any) => {
-        if (!event) return;
+        setPendingEventData(data);
+        setShowConfirmation(true);
+    };
+
+    const handleConfirmEdit = async () => {
+        if (!event || !pendingEventData) return;
 
         setIsLoading(true);
         setError(null);
+        setShowConfirmation(false);
 
         try {
             let imageUrl: string | null = event.image_url?.[0] || null;
 
             // Handle image upload if new image is provided
-            if (data.image && data.image.length > 0) {
-                const file = data.image[0];
+            if (pendingEventData.image && pendingEventData.image.length > 0) {
+                const file = pendingEventData.image[0];
 
                 const uploadResponse = await fetch("/api/upload-url", {
                     method: "POST",
@@ -116,10 +125,10 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    title: data.title,
-                    description: data.description,
-                    location: data.location,
-                    event_date: data.event_date,
+                    title: pendingEventData.title,
+                    description: pendingEventData.description,
+                    location: pendingEventData.location,
+                    event_date: pendingEventData.event_date,
                     image_url: imageUrl ? [imageUrl] : [],
                 }),
             });
@@ -231,6 +240,17 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                     </div>
                 </div>
             </div>
+
+            <ConfirmationDialog
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmEdit}
+                title="Update Event"
+                message={`Are you sure you want to update the event "${pendingEventData?.title}"? Participants will be notified of the changes.`}
+                confirmText="Update Event"
+                isLoading={isLoading}
+                type="warning"
+            />
         </div>
     );
 }

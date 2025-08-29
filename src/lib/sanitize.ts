@@ -21,6 +21,13 @@ export const sanitizeReviewContent = (content: string): string => {
     return sanitizeHtml(content, defaultOptions);
 };
 
+export const sanitizeUserBio = (bio: string): string => {
+    return sanitizeHtml(bio, {
+        ...defaultOptions,
+        allowedTags: ["b", "i", "em", "strong", "br"], // Simple formatting for bios
+    });
+};
+
 export const validateKaistEmail = (email: string): boolean => {
     const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN || "@kaist.ac.kr";
     return email.endsWith(allowedDomain);

@@ -23,17 +23,22 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { file_name } = uploadUrlSchema.parse(body);
-        // const { file_name, file_type, file_size } = uploadUrlSchema.parse(body);
+        const { file_name, context } = uploadUrlSchema.parse(body);
 
         // Sanitize filename and create unique path
         const sanitizedFileName = sanitizeFileName(file_name);
         const timestamp = Date.now();
         const uniqueFileName = `${user.id}/${timestamp}_${sanitizedFileName}`;
 
-        // Determine bucket based on context (event images vs review photos)
-        const bucket =
-            body.context === "review" ? "review-photos" : "event-images";
+        // Determine bucket based on context (event images vs review photos vs profile images)
+        let bucket: string;
+        if (context === "review") {
+            bucket = "review-photos";
+        } else if (context === "profile") {
+            bucket = "profile-images";
+        } else {
+            bucket = "event-images";
+        }
 
         // Generate signed URL for upload
         const { data, error } = await supabase.storage

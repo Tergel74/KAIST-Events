@@ -7,6 +7,8 @@ import { Event } from "@/types/event";
 import { format } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
+import EventFilters from "@/components/EventFilters";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 export default function MyEventsPage() {
     const { user, loading: authLoading } = useAuth();
@@ -16,6 +18,13 @@ export default function MyEventsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"created" | "joined">("created");
+    const [filters, setFilters] = useState({
+        dateRange: "all" as "today" | "week" | "all",
+        category: "",
+    });
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         // Don't redirect while auth is still loading
@@ -26,12 +35,16 @@ export default function MyEventsPage() {
             return;
         }
         fetchMyEvents();
-    }, [user, authLoading, router]);
+    }, [user, authLoading, router, filters]);
 
     const fetchMyEvents = async () => {
         try {
             setLoading(true);
-            const response = await fetch("/api/events/my-events", {
+            const params = new URLSearchParams({
+                date_range: filters.dateRange,
+                ...(filters.category && { category: filters.category }),
+            });
+            const response = await fetch(`/api/events/my-events?${params}`, {
                 cache: "no-store",
                 credentials: "include",
             });
@@ -78,6 +91,49 @@ export default function MyEventsPage() {
                     : "Failed to update event status"
             );
         }
+    };
+
+    const handleDeleteEvent = (event: Event) => {
+        setEventToDelete(event);
+        setShowDeleteConfirmation(true);
+    };
+
+    const confirmDeleteEvent = async () => {
+        if (!eventToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            const response = await fetch(`/api/events/${eventToDelete.id}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || "Failed to delete event");
+            }
+
+            // Refresh events list
+            await fetchMyEvents();
+            setShowDeleteConfirmation(false);
+            setEventToDelete(null);
+        } catch (err) {
+            console.error("Error deleting event:", err);
+            setError(
+                err instanceof Error ? err.message : "Failed to delete event"
+            );
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleFilterChange = (newFilters: {
+        dateRange: "today" | "week" | "all";
+        category?: string;
+    }) => {
+        setFilters({
+            dateRange: newFilters.dateRange,
+            category: newFilters.category || "",
+        });
     };
 
     const getStatusColor = (status: string) => {
@@ -278,6 +334,16 @@ export default function MyEventsPage() {
                                 {getStatusButtonText(event.status)}
                             </button>
                         )}
+
+                        {/* Delete Button - Only for creators and upcoming events */}
+                        {isCreator && event.status === "upcoming" && (
+                            <button
+                                onClick={() => handleDeleteEvent(event)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                            >
+                                Delete Event
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -362,6 +428,11 @@ export default function MyEventsPage() {
                         >
                             Joined Events ({joinedEvents.length})
                         </button>
+                    </div>
+
+                    {/* Event Filters */}
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                        <EventFilters onFilterChange={handleFilterChange} />
                     </div>
                 </div>
 
@@ -479,6 +550,17 @@ export default function MyEventsPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmationDialog
+                isOpen={showDeleteConfirmation}
+                onClose={() => setShowDeleteConfirmation(false)}
+                onConfirm={confirmDeleteEvent}
+                title="Delete Event"
+                message={`Are you sure you want to delete "${eventToDelete?.title}"? This action cannot be undone and all participants will be notified.`}
+                confirmText="Delete Event"
+                isLoading={isDeleting}
+                type="danger"
+            />
         </div>
     );
 }

@@ -3,5 +3,9 @@ export interface Participant {
     event_id: string;
     user_id: string;
     joined_at: string;
-    users: { name: string };
+    users: {
+        id: string;
+        name: string;
+        profile_image_url?: string;
+    };
 }

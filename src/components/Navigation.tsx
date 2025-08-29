@@ -91,6 +91,12 @@ export default function Navigation() {
                                     My Events
                                 </Link>
                                 <Link
+                                    href="/profile"
+                                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                                >
+                                    Profile
+                                </Link>
+                                <Link
                                     href="/dashboard/create"
                                     className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-sm"
                                 >
@@ -213,6 +219,13 @@ export default function Navigation() {
                                             onClick={closeMenu}
                                         >
                                             My Events
+                                        </Link>
+                                        <Link
+                                            href="/profile"
+                                            className="block py-1.5 sm:py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                                            onClick={closeMenu}
+                                        >
+                                            Profile
                                         </Link>
                                         <Link
                                             href="/dashboard/create"

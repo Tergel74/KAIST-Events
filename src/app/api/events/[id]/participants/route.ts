@@ -21,7 +21,9 @@ export async function GET(
         user_id,
         joined_at,
         users (
-          name
+          id,
+          name,
+          profile_image_url
         )
       `
             )
