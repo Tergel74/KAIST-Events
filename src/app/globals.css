@@ -121,6 +121,72 @@
     }
 }
 
+/* Mobile-specific fixes */
+@layer base {
+    /* Prevent unwanted scrolling on mobile */
+    html {
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body {
+        overflow-x: hidden;
+        /* Prevent bounce scrolling on iOS */
+        overscroll-behavior-y: none;
+        /* Fix for mobile viewport height issues */
+        min-height: 100vh;
+        min-height: 100dvh; /* Dynamic viewport height for modern browsers */
+    }
+
+    /* Hide scrollbars on mobile while keeping functionality */
+    @media (max-width: 768px) {
+        /* For Webkit browsers (Safari, Chrome on mobile) */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: transparent;
+        }
+
+        /* For Firefox on mobile */
+        html {
+            scrollbar-width: none;
+        }
+
+        /* Ensure smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    }
+
+    /* Thin scrollbars on desktop */
+    @media (min-width: 769px) {
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 #f1f1f1;
+        }
+    }
+}
+
 @layer utilities {
     .min-h-screen-navbar {
         min-height: calc(100vh - var(--navbar-height));

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import Navigation from "../components/Navigation";
@@ -6,6 +6,15 @@ import Navigation from "../components/Navigation";
 export const metadata: Metadata = {
     title: "KAIST Micro-Event Board",
     description: "Discover and join events happening around KAIST campus",
+};
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    // Prevent bouncing on iOS
+    viewportFit: "cover",
 };
 
 export default function RootLayout({

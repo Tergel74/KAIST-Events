@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
                 .lt("event_date", nextWeek.toISOString());
         } else if (filters.date_range === "past") {
             query = query
-                .in("status", ["started", "finished"])
+                // .in("status", ["started", "finished"])
                 .lt("event_date", now.toISOString());
         } else {
             // For "all", show upcoming and started events
