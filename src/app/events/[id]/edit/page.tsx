@@ -127,8 +127,8 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                 throw new Error(eventResult.error || "Failed to update event");
             }
 
-            // Redirect to event details
-            router.push(`/events/${id}`);
+            // Redirect to my events page
+            router.push("/dashboard/my-events");
         } catch (err) {
             setError(err instanceof Error ? err.message : "An error occurred");
         } finally {

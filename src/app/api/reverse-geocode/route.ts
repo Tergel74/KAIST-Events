@@ -48,10 +48,10 @@ export async function GET(request: NextRequest) {
     try {
         // Use Nominatim for reverse geocoding with proper headers and timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced to 5 second timeout
 
         const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=19&addressdetails=1&extratags=1`,
             {
                 headers: {
                     "User-Agent": "KAIST-Events/1.0 (contact@example.com)",

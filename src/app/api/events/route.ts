@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
                 title: eventData.title,
                 description: sanitizedDescription,
                 location: eventData.location,
-                event_date: eventData.event_date,
+                event_date: eventData.event_date.toISOString(),
                 creator_id: user.id,
                 image_url: eventData.image_url || [],
             })

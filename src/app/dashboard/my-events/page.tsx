@@ -228,15 +228,12 @@ export default function MyEventsPage() {
                                         <div className="aspect-[4/3] md:aspect-square bg-gray-100">
                                             {event.image_url &&
                                             event.image_url[0] ? (
-                                                // <img
-                                                //     src={event.image_url[0]}
-                                                //     alt={event.title}
-                                                //     className="w-full h-full object-cover"
-                                                // />
                                                 <Image
                                                     src={event.image_url[0]}
                                                     alt={event.title}
-                                                    className="w-full h-full object-cover"
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">

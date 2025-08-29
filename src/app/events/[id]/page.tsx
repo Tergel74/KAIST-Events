@@ -315,13 +315,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                 <Image
                                     src={event.image_url[0]}
                                     alt={event.title}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, 1152px"
+                                    priority
                                 />
-                                {/* <img
-                                    src={event.image_url[0]}
-                                    alt={event.title}
-                                    className="w-full h-full object-cover"
-                                /> */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                                 <div className="absolute bottom-4 left-6">
                                     <span
@@ -695,17 +693,25 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                                                 photo,
                                                                 photoIndex
                                                             ) => (
-                                                                <Image
+                                                                <div
                                                                     key={
                                                                         photoIndex
                                                                     }
-                                                                    src={photo}
-                                                                    alt={`Review photo ${
-                                                                        photoIndex +
-                                                                        1
-                                                                    }`}
-                                                                    className="w-full h-24 object-cover rounded"
-                                                                />
+                                                                    className="relative w-full h-24 rounded overflow-hidden"
+                                                                >
+                                                                    <Image
+                                                                        src={
+                                                                            photo
+                                                                        }
+                                                                        alt={`Review photo ${
+                                                                            photoIndex +
+                                                                            1
+                                                                        }`}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                        sizes="(max-width: 768px) 50vw, 25vw"
+                                                                    />
+                                                                </div>
                                                                 // <img
                                                                 //     key={
                                                                 //         photoIndex

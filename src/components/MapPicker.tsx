@@ -3,22 +3,22 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
-// Dynamically import map components to avoid SSR issues
-const MapContainer = dynamic(
-    () => import("react-leaflet").then((mod) => mod.MapContainer),
-    { ssr: false }
-);
-const TileLayer = dynamic(
-    () => import("react-leaflet").then((mod) => mod.TileLayer),
-    { ssr: false }
-);
-const Marker = dynamic(
-    () => import("react-leaflet").then((mod) => mod.Marker),
-    { ssr: false }
-);
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+// Create a wrapper component for the map that handles cleanup properly
+const MapWrapper = dynamic(() => import("./MapWrapper"), {
     ssr: false,
-});
+    loading: () => (
+        <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+    ),
+}) as React.ComponentType<{
+    center: [number, number];
+    zoom: number;
+    markerPosition?: [number, number];
+    onMapClick?: (latlng: { lat: number; lng: number }) => void;
+    className?: string;
+    popupText?: string;
+}>;
 
 interface LocationData {
     text: string;
@@ -85,12 +85,14 @@ export default function MapPicker({
 
     // Update inputValue when value prop changes (for edit mode)
     useEffect(() => {
-        setInputValue(value);
-        if (value) {
-            // If we have a value, try to geocode it to get coordinates
-            geocodeLocation(value);
+        if (value !== inputValue) {
+            setInputValue(value);
+            if (value && value !== selectedLocation?.text) {
+                // Only geocode if the value is actually different from what we have
+                geocodeLocation(value);
+            }
         }
-    }, [value]);
+    }, [value, inputValue, selectedLocation?.text]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -127,9 +129,16 @@ export default function MapPicker({
 
     const reverseGeocode = async (coords: { lat: number; lng: number }) => {
         try {
+            // Add timeout to the client-side request
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
             const response = await fetch(
-                `/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`
+                `/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`,
+                { signal: controller.signal }
             );
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error("Failed to reverse geocode location");
@@ -214,9 +223,16 @@ export default function MapPicker({
         // Reverse geocode to get address
         setIsLoading(true);
         try {
+            // Add timeout to the client-side request
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
             const response = await fetch(
-                `/api/reverse-geocode?lat=${lat}&lng=${lng}`
+                `/api/reverse-geocode?lat=${lat}&lng=${lng}`,
+                { signal: controller.signal }
             );
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error("Failed to reverse geocode location");
@@ -250,20 +266,6 @@ export default function MapPicker({
             setIsLoading(false);
         }
     };
-
-    const MapClickHandler = dynamic(
-        () =>
-            import("react-leaflet").then((mod) => {
-                const { useMapEvents } = mod;
-                return function MapClickHandler() {
-                    useMapEvents({
-                        click: handleMapClick,
-                    });
-                    return null;
-                };
-            }),
-        { ssr: false }
-    );
 
     const geocodeAndShowOnMap = async () => {
         if (!inputValue) return;
@@ -552,41 +554,36 @@ export default function MapPicker({
                                 </div>
                             )}
 
-                            <MapContainer
-                                center={
-                                    mapCoordinates
-                                        ? [
-                                              mapCoordinates.lat,
-                                              mapCoordinates.lng,
-                                          ]
-                                        : [
-                                              defaultCoordinates.lat,
-                                              defaultCoordinates.lng,
-                                          ]
-                                }
-                                zoom={mapCoordinates ? 15 : 12}
-                                style={{ height: "400px", width: "100%" }}
-                                className="rounded-lg"
-                            >
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            {isMounted && (
+                                <MapWrapper
+                                    center={
+                                        mapCoordinates
+                                            ? [
+                                                  mapCoordinates.lat,
+                                                  mapCoordinates.lng,
+                                              ]
+                                            : [
+                                                  defaultCoordinates.lat,
+                                                  defaultCoordinates.lng,
+                                              ]
+                                    }
+                                    zoom={mapCoordinates ? 15 : 12}
+                                    markerPosition={
+                                        mapCoordinates
+                                            ? [
+                                                  mapCoordinates.lat,
+                                                  mapCoordinates.lng,
+                                              ]
+                                            : undefined
+                                    }
+                                    onMapClick={handleMapClick}
+                                    className="w-full h-[400px] rounded-lg"
+                                    popupText={
+                                        selectedLocation?.text ||
+                                        "Selected location"
+                                    }
                                 />
-                                <MapClickHandler />
-                                {mapCoordinates && (
-                                    <Marker
-                                        position={[
-                                            mapCoordinates.lat,
-                                            mapCoordinates.lng,
-                                        ]}
-                                    >
-                                        <Popup>
-                                            {selectedLocation?.text ||
-                                                "Selected location"}
-                                        </Popup>
-                                    </Marker>
-                                )}
-                            </MapContainer>
+                            )}
                         </div>
 
                         {selectedLocation && (
@@ -623,25 +620,21 @@ export default function MapPicker({
                             </div>
                         )}
 
-                        <MapContainer
-                            center={[mapCoordinates.lat, mapCoordinates.lng]}
-                            zoom={15}
-                            style={{ height: "250px", width: "100%" }}
-                            className="rounded-lg"
-                        >
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-                            <Marker
-                                position={[
+                        {isMounted && (
+                            <MapWrapper
+                                center={[
                                     mapCoordinates.lat,
                                     mapCoordinates.lng,
                                 ]}
-                            >
-                                <Popup>{inputValue}</Popup>
-                            </Marker>
-                        </MapContainer>
+                                zoom={15}
+                                markerPosition={[
+                                    mapCoordinates.lat,
+                                    mapCoordinates.lng,
+                                ]}
+                                className="w-full h-[250px] rounded-lg"
+                                popupText={inputValue}
+                            />
+                        )}
 
                         <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded px-2 py-1 text-xs text-gray-600">
                             Preview: {inputValue}

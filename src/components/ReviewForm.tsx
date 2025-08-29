@@ -68,12 +68,26 @@ export default function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
                 {photoPreview.length > 0 && (
                     <div className="mt-2 flex gap-2 flex-wrap">
                         {photoPreview.map((preview, index) => (
-                            <Image
+                            <div
                                 key={index}
-                                src={preview}
-                                alt={`Photo ${index + 1}`}
-                                className="w-20 h-20 object-cover rounded"
-                            />
+                                className="relative w-20 h-20 rounded overflow-hidden"
+                            >
+                                {preview.startsWith("blob:") ? (
+                                    <img
+                                        src={preview}
+                                        alt={`Photo ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Image
+                                        src={preview}
+                                        alt={`Photo ${index + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="80px"
+                                    />
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}

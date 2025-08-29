@@ -103,11 +103,23 @@ export default function ImageUploader({
                 <div className="mt-4 grid grid-cols-3 gap-4">
                     {previews.map((preview, index) => (
                         <div key={index} className="relative">
-                            <Image
-                                src={preview}
-                                alt={`Preview ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg"
-                            />
+                            <div className="relative w-full h-24 rounded-lg overflow-hidden">
+                                {preview.startsWith("blob:") ? (
+                                    <img
+                                        src={preview}
+                                        alt={`Preview ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Image
+                                        src={preview}
+                                        alt={`Preview ${index + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 33vw, 100px"
+                                    />
+                                )}
+                            </div>
                             <button
                                 onClick={() => removeImage(index)}
                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"

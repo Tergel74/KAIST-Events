@@ -152,16 +152,21 @@ export default function EventForm({
                                 Image Preview:
                             </p>
                             <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
-                                <Image
-                                    src={imagePreview}
-                                    alt="Event preview"
-                                    className="w-full h-full object-cover"
-                                />
-                                {/* <img
-                                    src={imagePreview}
-                                    alt="Event preview"
-                                    className="w-full h-full object-cover"
-                                /> */}
+                                {imagePreview.startsWith("blob:") ? (
+                                    <img
+                                        src={imagePreview}
+                                        alt="Event preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Image
+                                        src={imagePreview}
+                                        alt="Event preview"
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, 384px"
+                                    />
+                                )}
                             </div>
                         </div>
                     )}
