@@ -66,15 +66,15 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { bio, profile_image_url } = body;
+        const { bio, pfp } = body;
 
         // Sanitize bio if provided
         const updateData: any = {};
         if (bio !== undefined) {
             updateData.bio = bio ? sanitizeUserBio(bio) : null;
         }
-        if (profile_image_url !== undefined) {
-            updateData.profile_image_url = profile_image_url;
+        if (pfp !== undefined) {
+            updateData.pfp = pfp;
         }
 
         // Update user profile

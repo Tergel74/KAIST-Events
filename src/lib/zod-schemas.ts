@@ -13,6 +13,12 @@ export const createEventSchema = z.object({
         .string()
         .max(200, "Location must be less than 200 characters")
         .optional(),
+    location_coordinates: z
+        .object({
+            lat: z.number(),
+            lng: z.number(),
+        })
+        .optional(),
     event_date: z
         .string()
         .transform((str) => new Date(str))
@@ -42,11 +48,12 @@ export const createReviewSchema = z.object({
 
 export const updateEventStatusSchema = z.object({
     status: z.enum(["upcoming", "started", "finished"]),
+    started_date: z.date().optional(),
 });
 
 export const eventFiltersSchema = z.object({
     date_range: z
-        .enum(["today", "week", "all", "past"])
+        .enum(["today", "week", "all", "past", "ongoing"])
         .optional()
         .default("all"),
     category: z.string().optional(),

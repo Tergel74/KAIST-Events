@@ -8,6 +8,10 @@ interface EventFormData {
     title: string;
     description: string;
     location: string;
+    location_coordinates?: {
+        lat: number;
+        lng: number;
+    };
     event_date: string;
     image?: FileList;
 }
@@ -19,6 +23,10 @@ interface EventFormProps {
         title: string;
         description: string;
         location: string;
+        location_coordinates?: {
+            lat: number;
+            lng: number;
+        };
         event_date: string;
     };
     existingImageUrl?: string;
@@ -34,6 +42,7 @@ export default function EventForm({
         register,
         handleSubmit,
         control,
+        setValue,
         formState: { errors },
     } = useForm<EventFormData>({
         defaultValues: initialData,
@@ -106,7 +115,15 @@ export default function EventForm({
                     render={({ field }) => (
                         <MapPicker
                             value={field.value || ""}
-                            onChange={field.onChange}
+                            onChange={(location, coordinates) => {
+                                field.onChange(location);
+                                if (coordinates) {
+                                    setValue(
+                                        "location_coordinates",
+                                        coordinates
+                                    );
+                                }
+                            }}
                             placeholder="Enter event location (e.g., KAIST Main Campus, Daejeon)"
                         />
                     )}

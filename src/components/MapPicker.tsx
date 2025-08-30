@@ -27,7 +27,7 @@ interface LocationData {
 
 interface MapPickerProps {
     value: string;
-    onChange: (location: string) => void;
+    onChange: (location: string, coordinates?: { lat: number; lng: number }) => void;
     placeholder?: string;
     className?: string;
 }
@@ -150,7 +150,7 @@ export default function MapPicker({
                 const address = data.address;
                 setInputValue(address);
                 setSelectedLocation({ text: address, coordinates: coords });
-                onChange(address);
+                onChange(address, coords);
 
                 // Log the source for debugging
                 if (data.source === "error_fallback") {
@@ -169,7 +169,7 @@ export default function MapPicker({
                     text: fallbackAddress,
                     coordinates: coords,
                 });
-                onChange(fallbackAddress);
+                onChange(fallbackAddress, coords);
             }
         } catch (err) {
             console.error("Reverse geocoding failed:", err);
@@ -179,7 +179,7 @@ export default function MapPicker({
             )}, ${coords.lng.toFixed(4)}`;
             setInputValue(fallbackAddress);
             setSelectedLocation({ text: fallbackAddress, coordinates: coords });
-            onChange(fallbackAddress);
+            onChange(fallbackAddress, coords);
         } finally {
             setIsLoading(false);
         }
@@ -212,7 +212,7 @@ export default function MapPicker({
         setInputValue(newValue);
         setSelectedLocation({ text: newValue });
 
-        // Always pass just the text to the form
+        // For manual text input, pass just the text without coordinates
         onChange(newValue);
     };
 
@@ -252,7 +252,7 @@ export default function MapPicker({
 
             setSelectedLocation(locationData);
             setInputValue(address);
-            onChange(address);
+            onChange(address, { lat, lng });
         } catch (err) {
             // Fallback to coordinates
             const locationData: LocationData = {
@@ -261,7 +261,7 @@ export default function MapPicker({
             };
             setSelectedLocation(locationData);
             setInputValue(locationData.text);
-            onChange(locationData.text);
+            onChange(locationData.text, { lat, lng });
         } finally {
             setIsLoading(false);
         }
@@ -296,7 +296,7 @@ export default function MapPicker({
                 setSelectedLocation(locationData);
 
                 // Always pass just the text to maintain clean input
-                onChange(inputValue);
+                onChange(inputValue, coordinates);
             }
         } catch (err) {
             console.error("Geocoding failed:", err);
@@ -328,7 +328,7 @@ export default function MapPicker({
                         type="button"
                         onClick={() => {
                             setMapMode("text");
-                            // When switching to text mode, ensure we pass plain text
+                            // When switching to text mode, ensure we pass plain text (no coordinates for manual input)
                             if (selectedLocation?.text) {
                                 onChange(selectedLocation.text);
                             }

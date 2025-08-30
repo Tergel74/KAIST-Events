@@ -57,7 +57,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         }
 
         const body = await request.json();
-        const { title, description, location, event_date, image_url } = body;
+        const {
+            title,
+            description,
+            location,
+            location_coordinates,
+            event_date,
+            image_url,
+        } = body;
 
         // Validate required fields
         if (!title || !event_date) {
@@ -89,6 +96,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 title,
                 description: sanitizedDescription,
                 location,
+                location_coordinates,
                 event_date: eventDate.toISOString(),
                 image_url: image_url || [],
             })

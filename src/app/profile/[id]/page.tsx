@@ -10,7 +10,7 @@ interface UserProfile {
     id: string;
     name: string;
     bio?: string;
-    profile_image_url?: string;
+    pfp?: string;
     created_at: string;
     stats: {
         eventsCreated: number;
@@ -115,9 +115,9 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                             <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                                 {/* Profile Image */}
                                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-white shadow-lg">
-                                    {profile.profile_image_url ? (
+                                    {profile.pfp ? (
                                         <Image
-                                            src={profile.profile_image_url}
+                                            src={profile.pfp}
                                             alt={profile.name}
                                             width={128}
                                             height={128}

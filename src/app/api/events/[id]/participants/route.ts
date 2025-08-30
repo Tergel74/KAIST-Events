@@ -23,7 +23,7 @@ export async function GET(
         users (
           id,
           name,
-          profile_image_url
+          pfp
         )
       `
             )

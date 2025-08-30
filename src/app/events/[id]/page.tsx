@@ -449,6 +449,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                 <div className="mb-8">
                                     <MapComponent
                                         location={event.location}
+                                        coordinates={event.location_coordinates}
                                         height="400px"
                                         showLabel={true}
                                     />
@@ -588,13 +589,9 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                         className="text-center group hover:bg-gray-50 rounded-lg p-2 transition-colors"
                                     >
                                         <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3 shadow-sm">
-                                            {participant.users
-                                                .profile_image_url ? (
+                                            {participant.users.pfp ? (
                                                 <Image
-                                                    src={
-                                                        participant.users
-                                                            .profile_image_url
-                                                    }
+                                                    src={participant.users.pfp}
                                                     alt={participant.users.name}
                                                     width={64}
                                                     height={64}

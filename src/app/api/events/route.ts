@@ -77,20 +77,22 @@ export async function GET(request: NextRequest) {
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
             query = query
-                .eq("status", "upcoming")
+                .in("status", ["upcoming", "started"])
                 .gte("event_date", now.toISOString())
                 .lt("event_date", tomorrow.toISOString());
         } else if (filters.date_range === "week") {
             const nextWeek = new Date(now);
             nextWeek.setDate(nextWeek.getDate() + 7);
             query = query
-                .eq("status", "upcoming")
+                .in("status", ["upcoming", "started"])
                 .gte("event_date", now.toISOString())
                 .lt("event_date", nextWeek.toISOString());
         } else if (filters.date_range === "past") {
             query = query
-                // .in("status", ["started", "finished"])
+                .eq("status", "finished")
                 .lt("event_date", now.toISOString());
+        } else if (filters.date_range === "ongoing") {
+            query = query.eq("status", "started");
         } else {
             // For "all", show upcoming and started events
             query = query
@@ -165,6 +167,7 @@ export async function POST(request: NextRequest) {
                 title: eventData.title,
                 description: sanitizedDescription,
                 location: eventData.location,
+                location_coordinates: eventData.location_coordinates,
                 event_date: eventData.event_date.toISOString(),
                 creator_id: user.id,
                 image_url: eventData.image_url || [],

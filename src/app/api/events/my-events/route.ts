@@ -1,12 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
+import { eventFiltersSchema } from "@/lib/zod-schemas";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     try {
         const supabase = createRouteHandlerClient({
             cookies: () => cookieStore as any,
+        });
+
+        const { searchParams } = new URL(request.url);
+        const filters = eventFiltersSchema.parse({
+            date_range: searchParams.get("date_range") || "all",
+            category: searchParams.get("category") || undefined,
         });
 
         const {
@@ -21,8 +28,10 @@ export async function GET() {
             );
         }
 
+        const now = new Date();
+
         // Fetch events created by the user
-        const { data: createdEvents, error: createdError } = await supabase
+        let createdQuery = supabase
             .from("events")
             .select(
                 `
@@ -34,6 +43,32 @@ export async function GET() {
             .eq("creator_id", user.id)
             .order("created_at", { ascending: false });
 
+        // Apply date filters to created events
+        if (filters.date_range === "ongoing") {
+            createdQuery = createdQuery.eq("status", "started");
+        } else if (filters.date_range === "past") {
+            createdQuery = createdQuery.lt("event_date", now.toISOString());
+        } else if (filters.date_range === "today") {
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            createdQuery = createdQuery
+                .gte("event_date", now.toISOString())
+                .lt("event_date", tomorrow.toISOString());
+        } else if (filters.date_range === "week") {
+            const nextWeek = new Date(now);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            createdQuery = createdQuery
+                .gte("event_date", now.toISOString())
+                .lt("event_date", nextWeek.toISOString());
+        } else {
+            // "all" - show upcoming and started events
+            createdQuery = createdQuery
+                .in("status", ["upcoming", "started"])
+                .gte("event_date", now.toISOString());
+        }
+
+        const { data: createdEvents, error: createdError } = await createdQuery;
+
         if (createdError) {
             return NextResponse.json(
                 { error: createdError.message },
@@ -42,7 +77,7 @@ export async function GET() {
         }
 
         // Fetch events the user has joined
-        const { data: joinedEvents, error: joinedError } = await supabase
+        let joinedQuery = supabase
             .from("events")
             .select(
                 `
@@ -57,6 +92,32 @@ export async function GET() {
             .eq("participants.user_id", user.id)
             .neq("creator_id", user.id) // Exclude events created by the user
             .order("created_at", { ascending: false });
+
+        // Apply same date filters to joined events
+        if (filters.date_range === "ongoing") {
+            joinedQuery = joinedQuery.eq("status", "started");
+        } else if (filters.date_range === "past") {
+            joinedQuery = joinedQuery.lt("event_date", now.toISOString());
+        } else if (filters.date_range === "today") {
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            joinedQuery = joinedQuery
+                .gte("event_date", now.toISOString())
+                .lt("event_date", tomorrow.toISOString());
+        } else if (filters.date_range === "week") {
+            const nextWeek = new Date(now);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            joinedQuery = joinedQuery
+                .gte("event_date", now.toISOString())
+                .lt("event_date", nextWeek.toISOString());
+        } else {
+            // "all" - show upcoming and started events
+            joinedQuery = joinedQuery
+                .in("status", ["upcoming", "started"])
+                .gte("event_date", now.toISOString());
+        }
+
+        const { data: joinedEvents, error: joinedError } = await joinedQuery;
 
         if (joinedError) {
             return NextResponse.json(

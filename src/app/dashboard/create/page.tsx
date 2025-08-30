@@ -72,6 +72,7 @@ export default function CreateEventPage() {
                     title: pendingEventData.title,
                     description: pendingEventData.description,
                     location: pendingEventData.location,
+                    location_coordinates: pendingEventData.location_coordinates,
                     event_date: pendingEventData.event_date,
                     image_url: imageUrl ? [imageUrl] : [],
                 }),

@@ -10,8 +10,10 @@ import { Event } from "@/types/event";
 
 export default function DashboardPage() {
     const [events, setEvents] = useState<Event[]>([]);
+    const [ongoingEvents, setOngoingEvents] = useState<Event[]>([]);
     const [pastEvents, setPastEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
+    const [ongoingLoading, setOngoingLoading] = useState(true);
     const [pastLoading, setPastLoading] = useState(true);
     const [filters, setFilters] = useState({
         dateRange: "all" as "today" | "week" | "all",
@@ -20,15 +22,26 @@ export default function DashboardPage() {
 
     const fetchEvents = async () => {
         setLoading(true);
+        setOngoingLoading(true);
+        setPastLoading(true);
         try {
             const params = new URLSearchParams({
                 date_range: filters.dateRange,
                 ...(filters.category && { category: filters.category }),
             });
 
+            // Fetch upcoming events
             const response = await fetch(`/api/events?${params}`);
             const data = await response.json();
 
+            // Fetch ongoing events
+            const ongoingResponse = await fetch(
+                `/api/events?date_range=ongoing`
+            );
+            const ongoingData = await ongoingResponse.json();
+            const ongoingEvents = ongoingData.events || [];
+
+            // Fetch past events
             const pastEventsResponse = await fetch(
                 `/api/events?date_range=past`
             );
@@ -37,6 +50,7 @@ export default function DashboardPage() {
 
             if (response.ok) {
                 setEvents(data.events || []);
+                setOngoingEvents(ongoingEvents);
                 setPastEvents(pastEvents);
             } else {
                 console.error("Failed to fetch events:", data.error);
@@ -45,6 +59,7 @@ export default function DashboardPage() {
             console.error("Error fetching events:", error);
         } finally {
             setLoading(false);
+            setOngoingLoading(false);
             setPastLoading(false);
         }
     };
@@ -165,7 +180,7 @@ export default function DashboardPage() {
                                     ? "Today's Events"
                                     : filters.dateRange === "week"
                                     ? "This Week's Events"
-                                    : "All Events"}
+                                    : "Upcoming Events"}
                                 {filters.category && `: ${filters.category}`}
                             </h2>
                             <span className="text-xs sm:text-sm text-gray-500 self-start sm:self-auto">
@@ -209,6 +224,108 @@ export default function DashboardPage() {
                     </motion.div>
                 )}
             </div>
+
+            {/* Ongoing Events Section */}
+            <div className="container mx-auto px-2 sm:px-4 py-4">
+                {ongoingLoading ? (
+                    <motion.div
+                        className="flex flex-col items-center justify-center py-8"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-3 border-orange-600 border-t-transparent mb-3"></div>
+                        <p className="text-gray-600 text-xs sm:text-sm">
+                            Loading ongoing events...
+                        </p>
+                    </motion.div>
+                ) : ongoingEvents.length === 0 ? (
+                    <motion.div
+                        className="text-center py-8 bg-orange-50 rounded-xl shadow-sm border border-orange-200 mx-1 sm:mx-0"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                            <svg
+                                className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
+                            No ongoing events
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto text-xs sm:text-sm px-4">
+                            There are no events currently happening.
+                        </p>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        className="space-y-4 sm:space-y-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+                            <h2 className="text-lg sm:text-xl font-semibold text-orange-800">
+                                🟡 Ongoing Events
+                            </h2>
+                            <span className="text-xs sm:text-sm text-gray-500 self-start sm:self-auto">
+                                {ongoingEvents.length}{" "}
+                                {ongoingEvents.length === 1
+                                    ? "event"
+                                    : "events"}{" "}
+                                happening now
+                            </span>
+                        </div>
+                        <motion.div
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
+                            variants={{
+                                visible: {
+                                    transition: {
+                                        staggerChildren: 0.05,
+                                    },
+                                },
+                            }}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            {ongoingEvents.map((event, index) => (
+                                <motion.div
+                                    key={event.id}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0 },
+                                    }}
+                                    transition={{
+                                        duration: 0.3,
+                                        delay: index * 0.1,
+                                    }}
+                                >
+                                    <Link
+                                        href={`/events/${event.id}`}
+                                        className="group block h-full hover:-translate-y-1 transition-transform duration-200"
+                                    >
+                                        <EventCard event={event} />
+                                    </Link>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </div>
+
+            {/* Past Events Section */}
             <div className="container mx-auto px-4 sm:px-6 py-8">
                 {pastLoading ? (
                     <div className="flex flex-col items-center justify-center py-16">

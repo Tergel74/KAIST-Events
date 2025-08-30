@@ -6,6 +6,6 @@ export interface Participant {
     users: {
         id: string;
         name: string;
-        profile_image_url?: string;
+        pfp?: string;
     };
 }

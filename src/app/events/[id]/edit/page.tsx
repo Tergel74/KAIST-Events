@@ -128,6 +128,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                     title: pendingEventData.title,
                     description: pendingEventData.description,
                     location: pendingEventData.location,
+                    location_coordinates: pendingEventData.location_coordinates,
                     event_date: pendingEventData.event_date,
                     image_url: imageUrl ? [imageUrl] : [],
                 }),
@@ -231,6 +232,8 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                                 title: event.title,
                                 description: event.description || "",
                                 location: event.location || "",
+                                location_coordinates:
+                                    event.location_coordinates,
                                 event_date: new Date(event.event_date)
                                     .toISOString()
                                     .slice(0, 16),

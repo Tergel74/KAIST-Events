@@ -4,14 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthContext";
 import Image from "next/image";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 interface UserProfile {
     id: string;
     name: string;
     email: string;
     bio?: string;
-    profile_image_url?: string;
+    pfp?: string;
     created_at: string;
 }
 
@@ -24,11 +23,6 @@ export default function ProfilePage() {
     const [editing, setEditing] = useState(false);
     const [editedBio, setEditedBio] = useState("");
     const [uploading, setUploading] = useState(false);
-    const [showConfirmation, setShowConfirmation] = useState(false);
-    const [pendingChanges, setPendingChanges] = useState<{
-        bio: string;
-        image?: File;
-    } | null>(null);
 
     useEffect(() => {
         if (authLoading) return;
@@ -81,68 +75,66 @@ export default function ProfilePage() {
             return;
         }
 
-        setPendingChanges({ bio: editedBio, image: file });
-        setShowConfirmation(true);
+        // Upload image directly
+        await updateProfileImage(file);
     };
 
-    const handleBioSubmit = () => {
-        setPendingChanges({ bio: editedBio });
-        setShowConfirmation(true);
+    const handleBioSubmit = async () => {
+        // Update bio directly
+        await updateProfile({ bio: editedBio });
     };
 
-    const confirmUpdate = async () => {
-        if (!pendingChanges) return;
-
+    const updateProfileImage = async (file: File) => {
         setUploading(true);
         setError(null);
-        setShowConfirmation(false);
 
         try {
-            let imageUrl: string | undefined = undefined;
+            const uploadResponse = await fetch("/api/upload-url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    file_name: file.name,
+                    file_type: file.type,
+                    file_size: file.size,
+                    context: "profile",
+                }),
+            });
 
-            // Handle image upload if present
-            if (pendingChanges.image) {
-                const uploadResponse = await fetch("/api/upload-url", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        file_name: pendingChanges.image.name,
-                        file_type: pendingChanges.image.type,
-                        file_size: pendingChanges.image.size,
-                        context: "profile",
-                    }),
-                });
-
-                if (!uploadResponse.ok) {
-                    throw new Error("Failed to get upload URL");
-                }
-
-                const { uploadUrl, publicUrl } = await uploadResponse.json();
-
-                const fileUploadResponse = await fetch(uploadUrl, {
-                    method: "PUT",
-                    body: pendingChanges.image,
-                    headers: {
-                        "Content-Type": pendingChanges.image.type,
-                    },
-                });
-
-                if (!fileUploadResponse.ok) {
-                    throw new Error("Failed to upload image");
-                }
-
-                imageUrl = publicUrl;
+            if (!uploadResponse.ok) {
+                throw new Error("Failed to get upload URL");
             }
 
-            // Update profile
-            const updateData: any = {
-                bio: pendingChanges.bio,
-            };
+            const { uploadUrl, publicUrl } = await uploadResponse.json();
 
-            if (imageUrl) {
-                updateData.profile_image_url = imageUrl;
+            const fileUploadResponse = await fetch(uploadUrl, {
+                method: "PUT",
+                body: file,
+                headers: {
+                    "Content-Type": file.type,
+                },
+            });
+
+            if (!fileUploadResponse.ok) {
+                throw new Error("Failed to upload image");
             }
 
+            // Update profile with new image
+            await updateProfile({ pfp: publicUrl });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "An error occurred");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const updateProfile = async (updateData: {
+        bio?: string;
+        pfp?: string;
+    }) => {
+        setUploading(true);
+        setError(null);
+
+        try {
             const response = await fetch("/api/profile", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -156,8 +148,9 @@ export default function ProfilePage() {
 
             // Refresh profile data
             await fetchProfile();
-            setEditing(false);
-            setPendingChanges(null);
+            if (updateData.bio !== undefined) {
+                setEditing(false);
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : "An error occurred");
         } finally {
@@ -203,9 +196,9 @@ export default function ProfilePage() {
                                 {/* Profile Image */}
                                 <div className="relative">
                                     <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-white shadow-lg">
-                                        {profile.profile_image_url ? (
+                                        {profile.pfp ? (
                                             <Image
-                                                src={profile.profile_image_url}
+                                                src={profile.pfp}
                                                 alt={profile.name}
                                                 width={128}
                                                 height={128}
@@ -354,24 +347,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
-
-            <ConfirmationDialog
-                isOpen={showConfirmation}
-                onClose={() => {
-                    setShowConfirmation(false);
-                    setPendingChanges(null);
-                }}
-                onConfirm={confirmUpdate}
-                title="Update Profile"
-                message={
-                    pendingChanges?.image
-                        ? "Are you sure you want to update your profile picture and bio?"
-                        : "Are you sure you want to update your bio?"
-                }
-                confirmText="Update Profile"
-                isLoading={uploading}
-                type="info"
-            />
         </div>
     );
 }

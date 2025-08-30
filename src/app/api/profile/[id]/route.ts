@@ -29,7 +29,7 @@ export async function GET(
         // Fetch user profile (public information only)
         const { data: profile, error: profileError } = await supabase
             .from("users")
-            .select("id, name, bio, profile_image_url, created_at")
+            .select("id, name, bio, pfp, created_at")
             .eq("id", id)
             .single();
 

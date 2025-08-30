@@ -10,7 +10,6 @@ export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Close menu when clicking outside and handle scroll lock
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
             if (
@@ -27,7 +26,6 @@ export default function Navigation() {
             }
         };
 
-        // Prevent body scroll when menu is open on mobile
         if (isMenuOpen) {
             document.body.style.overflow = "hidden";
             document.body.style.touchAction = "none";
@@ -72,7 +70,6 @@ export default function Navigation() {
                         </Link>
                     </div>
 
-                    {/* Desktop Menu */}
                     <div className="hidden md:flex items-center space-x-4">
                         {loading ? (
                             <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -91,21 +88,21 @@ export default function Navigation() {
                                     My Events
                                 </Link>
                                 <Link
-                                    href="/profile"
-                                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                                >
-                                    Profile
-                                </Link>
-                                <Link
                                     href="/dashboard/create"
                                     className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-sm"
                                 >
                                     Create Event
                                 </Link>
                                 <div className="flex items-center space-x-3">
-                                    <span className="text-xs text-gray-600 max-w-[120px] truncate">
-                                        {user.user_metadata?.name || user.email}
-                                    </span>
+                                    <Link
+                                        href="/profile"
+                                        className="text-gray-600 hover:text-gray-900 transition-colors text-xs truncate"
+                                    >
+                                        {user.email}
+                                    </Link>
+                                    {/* <span className="text-xs text-gray-600 max-w-[120px] truncate"> */}
+
+                                    {/* </span> */}
                                     <button
                                         onClick={handleSignOut}
                                         className="text-gray-600 hover:text-gray-900 text-xs"

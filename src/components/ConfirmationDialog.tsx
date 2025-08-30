@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface ConfirmationDialogProps {
     isOpen: boolean;
     onClose: () => void;
@@ -23,6 +25,20 @@ export default function ConfirmationDialog({
     isLoading = false,
     type = "info",
 }: ConfirmationDialogProps) {
+    // Handle escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && !isLoading) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener("keydown", handleEscape);
+            return () => document.removeEventListener("keydown", handleEscape);
+        }
+    }, [isOpen, isLoading, onClose]);
+
     if (!isOpen) return null;
 
     const getTypeClasses = () => {
@@ -31,16 +47,22 @@ export default function ConfirmationDialog({
                 return {
                     button: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
                     icon: "text-red-600",
+                    iconBg: "bg-red-50",
+                    accent: "border-red-200",
                 };
             case "warning":
                 return {
                     button: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500",
                     icon: "text-yellow-600",
+                    iconBg: "bg-yellow-50",
+                    accent: "border-yellow-200",
                 };
             default:
                 return {
                     button: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
                     icon: "text-blue-600",
+                    iconBg: "bg-blue-50",
+                    accent: "border-blue-200",
                 };
         }
     };
@@ -48,23 +70,46 @@ export default function ConfirmationDialog({
     const typeClasses = getTypeClasses();
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <div
-                    className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                    onClick={onClose}
-                />
-                <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                    <div className="sm:flex sm:items-start">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Backdrop with very subtle blur */}
+            <div
+                className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-all duration-300 ease-out"
+                onClick={!isLoading ? onClose : undefined}
+            />
+
+            {/* Dialog */}
+            <div
+                className={`
+                    relative bg-white rounded-xl shadow-2xl border ${
+                        typeClasses.accent
+                    }
+                    max-w-md w-full mx-4 
+                    transform transition-all duration-300 ease-out
+                    ${
+                        isOpen
+                            ? "scale-100 opacity-100 translate-y-0"
+                            : "scale-95 opacity-0 translate-y-4"
+                    }
+                `}
+                style={{
+                    animation: isOpen
+                        ? "slideIn 0.3s ease-out"
+                        : "slideOut 0.3s ease-in",
+                }}
+            >
+                {/* Content */}
+                <div className="p-6">
+                    {/* Header with icon */}
+                    <div className="flex items-start space-x-4 mb-4">
                         <div
-                            className={`mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 sm:mx-0 sm:h-10 sm:w-10`}
+                            className={`flex-shrink-0 w-10 h-10 ${typeClasses.iconBg} rounded-full flex items-center justify-center`}
                         >
                             {type === "danger" && (
                                 <svg
-                                    className={`h-6 w-6 ${typeClasses.icon}`}
+                                    className={`w-5 h-5 ${typeClasses.icon}`}
                                     fill="none"
                                     viewBox="0 0 24 24"
-                                    strokeWidth="1.5"
+                                    strokeWidth="2"
                                     stroke="currentColor"
                                 >
                                     <path
@@ -76,10 +121,10 @@ export default function ConfirmationDialog({
                             )}
                             {type === "warning" && (
                                 <svg
-                                    className={`h-6 w-6 ${typeClasses.icon}`}
+                                    className={`w-5 h-5 ${typeClasses.icon}`}
                                     fill="none"
                                     viewBox="0 0 24 24"
-                                    strokeWidth="1.5"
+                                    strokeWidth="2"
                                     stroke="currentColor"
                                 >
                                     <path
@@ -91,10 +136,10 @@ export default function ConfirmationDialog({
                             )}
                             {type === "info" && (
                                 <svg
-                                    className={`h-6 w-6 ${typeClasses.icon}`}
+                                    className={`w-5 h-5 ${typeClasses.icon}`}
                                     fill="none"
                                     viewBox="0 0 24 24"
-                                    strokeWidth="1.5"
+                                    strokeWidth="2"
                                     stroke="currentColor"
                                 >
                                     <path
@@ -105,48 +150,69 @@ export default function ConfirmationDialog({
                                 </svg>
                             )}
                         </div>
-                        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                            <h3 className="text-base font-semibold leading-6 text-gray-900">
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                 {title}
                             </h3>
-                            <div className="mt-2">
-                                <p className="text-sm text-gray-500">
-                                    {message}
-                                </p>
-                            </div>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                {message}
+                            </p>
                         </div>
                     </div>
-                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+
+                    {/* Actions */}
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end space-y-3 space-y-reverse sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-100">
                         <button
                             type="button"
-                            className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
-                                typeClasses.button
-                            } ${
-                                isLoading ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                            onClick={onConfirm}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center">
-                                    <div className="animate-spin -ml-1 mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                    Processing...
-                                </div>
-                            ) : (
-                                confirmText
-                            )}
-                        </button>
-                        <button
-                            type="button"
-                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                            className="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={onClose}
                             disabled={isLoading}
                         >
                             {cancelText}
                         </button>
+                        <button
+                            type="button"
+                            className={`w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${typeClasses.button}`}
+                            onClick={onConfirm}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                    <span>Processing...</span>
+                                </div>
+                            ) : (
+                                confirmText
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* Custom animations */}
+            <style jsx>{`
+                @keyframes slideIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.95) translateY(-8px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+
+                @keyframes slideOut {
+                    from {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                    to {
+                        opacity: 0;
+                        transform: scale(0.95) translateY(-8px);
+                    }
+                }
+            `}</style>
         </div>
     );
 }
